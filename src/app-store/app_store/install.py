@@ -6,6 +6,7 @@ import tinydb
 import shutil
 import subprocess
 import datetime
+import textwrap
 from catalog import (
     app_description,
     app_url,
@@ -241,49 +242,70 @@ def printenv(app_name):
 
 def print_app_catalog(include_latest=False):
     app_names = sorted(definitions)
-    name_width = max(len("app"), max(len(name) for name in app_names))
-    version_width = max(
-        len("configured"),
-        max(len(str(configured_version(name))) for name in app_names),
+    terminal_width = shutil.get_terminal_size((120, 24)).columns
+    table_width = max(96, min(terminal_width, 160))
+    name_width = min(24, max(len("App"), max(len(name) for name in app_names)))
+    version_width = min(
+        24,
+        max(len("Configured"), max(len(str(configured_version(name))) for name in app_names)),
     )
-    latest_width = len("latest")
     if include_latest:
         latest_values = {
             name: latest_version(name) or "unknown"
             for name in app_names
         }
-        latest_width = max(
-            len("latest"),
-            max(len(str(value)) for value in latest_values.values()),
+        latest_width = min(
+            22,
+            max(len("Latest"), max(len(str(value)) for value in latest_values.values())),
         )
+        info_width = table_width - name_width - version_width - latest_width - 13
+        headers = ["App", "Configured", "Latest", "Info"]
+        widths = [name_width, version_width, latest_width, info_width]
     else:
         latest_values = {}
+        info_width = table_width - name_width - version_width - 10
+        headers = ["App", "Configured", "Info"]
+        widths = [name_width, version_width, info_width]
 
-    if include_latest:
-        header = (
-            f"{'app':<{name_width}}  {'configured':<{version_width}}  "
-            f"{'latest':<{latest_width}}  description"
-        )
-    else:
-        header = f"{'app':<{name_width}}  {'configured':<{version_width}}  description"
+    def separator():
+        return "+" + "+".join("-" * (width + 2) for width in widths) + "+"
 
-    print(header)
-    print("-" * len(header))
+    def wrap_cell(value, width):
+        value = str(value)
+        return textwrap.wrap(
+            value,
+            width=width,
+            break_long_words=False,
+            break_on_hyphens=False,
+        ) or [""]
+
+    def print_row(cells):
+        wrapped = [wrap_cell(cell, width) for cell, width in zip(cells, widths)]
+        height = max(len(lines) for lines in wrapped)
+        for i in range(height):
+            row = []
+            for lines, width in zip(wrapped, widths):
+                value = lines[i] if i < len(lines) else ""
+                row.append(f" {value:<{width}} ")
+            print("|" + "|".join(row) + "|")
+
+    print(separator())
+    print_row(headers)
+    print(separator())
     for app_name in app_names:
+        info = f"{app_description(app_name)} {app_url(app_name)}"
         if include_latest:
-            print(
-                f"{app_name:<{name_width}}  "
-                f"{configured_version(app_name):<{version_width}}  "
-                f"{latest_values[app_name]:<{latest_width}}  "
-                f"{app_description(app_name)}"
+            print_row(
+                [
+                    app_name,
+                    configured_version(app_name),
+                    latest_values[app_name],
+                    info,
+                ]
             )
         else:
-            print(
-                f"{app_name:<{name_width}}  "
-                f"{configured_version(app_name):<{version_width}}  "
-                f"{app_description(app_name)}"
-            )
-        print(f"{'':<{name_width}}  {'':<{version_width}}  {app_url(app_name)}")
+            print_row([app_name, configured_version(app_name), info])
+    print(separator())
 
 
 def backup(app_name):
