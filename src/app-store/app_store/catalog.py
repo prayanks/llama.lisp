@@ -272,7 +272,11 @@ APP_CATALOG = {
         "description": "High-throughput LLM inference server.",
         "url": "https://docs.vllm.ai/",
         "version": "0.6.2",
-        "latest": {"type": "github-release", "repo": "vllm-project/vllm"},
+        "latest": {
+            "type": "github-release",
+            "repo": "vllm-project/vllm",
+            "strip_prefix": "v",
+        },
     },
 }
 

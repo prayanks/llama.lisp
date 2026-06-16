@@ -7,7 +7,7 @@
             (name "vllm")
             (build ,(format "localhost/johnaic/vllm:{}" ,(choose-version "vllm" "0.6.2")))
             (build-args
-                ("APP_VERSION" ,(choose-version "vllm" "0.6.2")))
+                ("APP_VERSION" ,(strip-prefix ,(choose-version "vllm" "0.6.2") "v")))
             (environment
                 ("HF_TOKEN" "")
                 ("MY_MODEL" "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8")

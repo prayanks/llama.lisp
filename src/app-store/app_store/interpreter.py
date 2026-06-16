@@ -51,6 +51,12 @@ def str_format(fstring, *args):
     return fstring.format(*args)
 
 
+def strip_prefix(value, prefix):
+    if value.startswith(prefix):
+        return value[len(prefix) :]
+    return value
+
+
 def gen_password(length=16):
     return secrets.token_urlsafe(length)
 
@@ -61,6 +67,7 @@ standard_lib = {
     "hash-password": hash_password,
     "interactive-input": interactive_input,
     "format": str_format,
+    "strip-prefix": strip_prefix,
     "gen-password-hex32": lambda: secrets.token_bytes(32).hex(),
 }
 

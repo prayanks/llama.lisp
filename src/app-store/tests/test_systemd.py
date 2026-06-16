@@ -22,6 +22,7 @@ def test_podman_build_passes_build_args(monkeypatch):
                 "build",
                 "-t",
                 "localhost/johnaic/vllm:0.6.2",
+                "--no-cache",
                 "--build-arg",
                 "APP_VERSION=0.6.2",
                 "/tmp/vllm",

@@ -58,6 +58,8 @@ def podman_pull(image_name):
 def podman_build(image_name, definitions_dir, build_args=None):
     print(f"==> building image {image_name}")
     cmd = ["podman", "build", "-t", image_name]
+    if build_args:
+        cmd.append("--no-cache")
     for key, value in build_args or []:
         cmd.extend(["--build-arg", f"{key}={value}"])
     cmd.append(definitions_dir)

@@ -91,6 +91,17 @@ def test_choose_version_custom_is_cached(monkeypatch):
     )
 
 
+def test_strip_prefix():
+    assert (
+        config_lisp(["unquote", ["strip-prefix", "v0.23.0", "v"]])
+        == "0.23.0"
+    )
+    assert (
+        config_lisp(["unquote", ["strip-prefix", "0.23.0", "v"]])
+        == "0.23.0"
+    )
+
+
 def test_app_definition():
     out = config_lisp(
         parse_sexp(
