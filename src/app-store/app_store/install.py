@@ -331,71 +331,71 @@ def list_apps(app_name, include_latest=False):
         status_units(app_name)
 
 
-def main():
-    examples_text = """
-Examples:
----------
+def print_help():
+    help_text = """
+Johnny - self-hosted app manager
 
-Johnny installs self-hosted apps from Lisp definitions into Podman containers
+Johnny installs app definitions from this repository as Podman containers
 managed by user-level systemd.
 
-Install an app called thelounge:
+Usage:
+  johnny help
+  johnny list all [--latest]
+  johnny list installed
+  johnny install <app>
+  johnny status <app>
+  johnny ports <app>
+  johnny printenv <app>
+  johnny logs <app>
+  johnny stop <app>
+  johnny start <app>
+  johnny restart <app>
+  johnny backup <app|all>
+  johnny uninstall <app>
 
-    johnny install thelounge
-
-For apps with version prompts, press Enter to use the configured default version
-or type an image/release tag to install that version.
-
-List apps Johnny can install:
-
+Common workflows:
+  See what Johnny can install:
     johnny list all
 
-List apps and check the latest known upstream version:
-
+  Compare configured versions with latest known upstream versions:
     johnny list all --latest
 
-List apps already installed on this machine:
+  Install an app:
+    johnny install open-webui
 
-    johnny list installed
+  Check where the app is exposed:
+    johnny ports open-webui
 
-Check status of an app once installed:
+  Inspect generated environment values:
+    johnny printenv open-webui
 
-    johnny status thelounge
+  Follow logs:
+    johnny logs open-webui
 
-Find open ports:
+Version prompts:
+  Some apps ask which version to install. Press Enter to use the configured
+  default, or type a release/image tag explicitly.
 
-    johnny ports thelounge
+  Example:
+    ==> Version for qdrant [default: v1.12.0, latest: v1.18.2]:
 
-Print generated environment files:
+Storage:
+  App data:      ~/.johnny/<app>/
+  App database:  ~/.johnny/app_db.json
+  Backups:       ~/.backup_johnny/<app>/
+  Systemd files: ~/.config/containers/systemd/
 
-    johnny printenv thelounge
-
-Stop the app:
-
-    johnny stop thelounge
-
-Restart the app:
-
-    johnny restart thelounge
-
-Follow logs for an app:
-
-    johnny logs thelounge
-
-Backup an app's Johnny-managed data directory:
-
-    johnny backup thelounge
-
+Notes:
+  Johnny preserves existing app ports and env files when reinstalling.
+  Run `johnny backup <app>` before changing versions for important apps.
 """
+    print(help_text.strip())
 
+
+def main():
     parser = argparse.ArgumentParser(
-        description=(
-            "Johnny installs and manages self-hosted apps using Podman, "
-            "Quadlet files, and user-level systemd."
-        ),
+        add_help=False,
         prog="johnny",
-        epilog=examples_text,
-        formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "action",
@@ -414,17 +414,20 @@ Backup an app's Johnny-managed data directory:
         action="store_true",
         help="When listing all apps, check latest known upstream versions.",
     )
+    parser.add_argument("-h", "--help", action="store_true")
     args = parser.parse_args()
 
     action = args.action
     app_name = args.app_name
 
-    if action is None:
-        parser.print_help()
+    if args.help or action is None or action == "help":
+        print_help()
         return
 
     if app_name is None:
-        parser.error("the following arguments are required: app_name")
+        print(f"Error: `{action}` requires an app name.\n")
+        print_help()
+        raise SystemExit(2)
 
     if action == "install":
         install(app_name)
@@ -449,7 +452,9 @@ Backup an app's Johnny-managed data directory:
     elif action == "list":
         list_apps(app_name, args.latest)
     else:
-        raise RuntimeError(f"Unknown action {action}")
+        print(f"Error: unknown command `{action}`.\n")
+        print_help()
+        raise SystemExit(2)
 
 
 if __name__ == "__main__":
