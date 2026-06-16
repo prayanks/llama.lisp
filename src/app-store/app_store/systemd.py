@@ -55,7 +55,10 @@ def podman_pull(image_name):
     subprocess.run(cmd, check=True)
 
 
-def podman_build(image_name, definitions_dir):
+def podman_build(image_name, definitions_dir, build_args=None):
     print(f"==> building image {image_name}")
-    cmd = ["podman", "build", "-t", image_name, definitions_dir]
+    cmd = ["podman", "build", "-t", image_name]
+    for key, value in build_args or []:
+        cmd.extend(["--build-arg", f"{key}={value}"])
+    cmd.append(definitions_dir)
     subprocess.run(cmd, check=True)

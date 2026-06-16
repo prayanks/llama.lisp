@@ -1,5 +1,5 @@
 (define-app
-    (version "2.1.2")
+    (version ,(choose-version "flowise" "2.1.2"))
     (ports 3000)
     (let ((db-password ,(gen-password)))
         (containers
@@ -14,7 +14,7 @@
                     ("POSTGRES_PASSWORD" ,db-password)))
             (container 
                 (name "flowise")
-                (image "docker.io/flowiseai/flowise:2.1.2")
+                (image ,(format "docker.io/flowiseai/flowise:{}" ,(choose-version "flowise" "2.1.2")))
                 (volumes 
                     ("flowise" "/root/flowise"))
                 (environment 
@@ -35,4 +35,3 @@
                     ("BLOB_STORAGE_PATH" "/root/flowise/storage")
                     ("DISABLE_FLOWISE_TELEMETRY" "true")
                     ("MODEL_LIST_CONFIG_JSON" "/root/models/models.json"))))))
-

@@ -1,5 +1,5 @@
 (define-app
-    (version "3.28")
+    (version ,(choose-version "langfuse" "3.28"))
     (ports 3000)
     (let ((db-password ,(gen-password))
           (clickhouse-password ,(gen-password))
@@ -10,7 +10,7 @@
         (containers
             (container
                 (name "worker")
-                (image "docker.io/langfuse/langfuse-worker:3.28")
+                (image ,(format "docker.io/langfuse/langfuse-worker:{}" ,(choose-version "langfuse" "3.28")))
                 (environment
                     ("DATABASE_URL" ,(format "postgres://postgres:{}@localhost:5432/postgres" ,db-password))
                     ("SALT" ,salt)
@@ -40,7 +40,7 @@
                     ("REDIS_PORT" "6379")))
             (container
                 (name "web")
-                (image "docker.io/langfuse/langfuse:3.28")
+                (image ,(format "docker.io/langfuse/langfuse:{}" ,(choose-version "langfuse" "3.28")))
                 (environment
                     ("DATABASE_URL" ,(format "postgres://postgres:{}@localhost:5432/postgres" ,db-password))
                     ("SALT" ,salt)

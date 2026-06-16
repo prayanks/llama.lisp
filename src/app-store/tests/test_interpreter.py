@@ -1,4 +1,4 @@
-from app_store.interpreter import config_lisp
+from app_store.interpreter import chosen_versions, config_lisp
 from app_store.parser import parse_sexp, lookup_sexp
 
 
@@ -58,6 +58,37 @@ def test_let():
         ],
         env={"world": "sasank"},
     ) == ["hello", "sasank", "yoyo"]
+
+
+def test_choose_version_default(monkeypatch):
+    chosen_versions.clear()
+    monkeypatch.setattr("app_store.interpreter.latest_version", lambda app_name: "v1.18.2")
+    monkeypatch.setattr("builtins.input", lambda prompt: "")
+
+    assert (
+        config_lisp(
+            ["unquote", ["choose-version", "qdrant", "v1.12.0"]],
+        )
+        == "v1.12.0"
+    )
+
+
+def test_choose_version_custom_is_cached(monkeypatch):
+    chosen_versions.clear()
+    monkeypatch.setattr("app_store.interpreter.latest_version", lambda app_name: "v1.18.2")
+    inputs = iter(["v1.18.2"])
+    monkeypatch.setattr("builtins.input", lambda prompt: next(inputs))
+
+    assert (
+        config_lisp(
+            [
+                "pair",
+                ["unquote", ["choose-version", "qdrant", "v1.12.0"]],
+                ["unquote", ["choose-version", "qdrant", "v1.12.0"]],
+            ],
+        )
+        == ["pair", "v1.18.2", "v1.18.2"]
+    )
 
 
 def test_app_definition():

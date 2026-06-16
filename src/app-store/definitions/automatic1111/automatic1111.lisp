@@ -1,11 +1,13 @@
 (define-app
     ; name of the app is taken from file name
-    (version "1.10.0")
+    (version ,(choose-version "automatic1111" "v1.10.0"))
     (ports 7860)
     (containers
         (container
             (name "automatic1111")
-            (build "localhost/johnaic/automatic1111:1.10.0")
+            (build ,(format "localhost/johnaic/automatic1111:{}" ,(choose-version "automatic1111" "v1.10.0")))
+            (build-args
+                ("APP_VERSION" ,(choose-version "automatic1111" "v1.10.0")))
             (environment
                 ("venv_dir" "/apps/deps/venv")
                 ("install_dir" "/apps/automatic1111")

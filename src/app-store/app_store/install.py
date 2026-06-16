@@ -6,6 +6,12 @@ import tinydb
 import shutil
 import subprocess
 import datetime
+from catalog import (
+    app_description,
+    app_url,
+    configured_version,
+    latest_version,
+)
 from parser import (
     parse_sexp,
     generate_systemd,
@@ -76,11 +82,16 @@ def gen_pod(app_name, ports):
 def gen_container(app_name, container):
     definitions_dir = os.path.dirname(definitions[app_name])
     try:
+        build_args = lookup_sexp(container, "build-args")
+    except KeyError:
+        build_args = []
+
+    try:
         image = lookup_sexp(container, "image")[0]
         podman_pull(image)
     except KeyError:
         image = lookup_sexp(container, "build")[0]
-        podman_build(image, definitions_dir)
+        podman_build(image, definitions_dir, build_args)
 
     try:
         volumes = lookup_sexp(container, "volumes")
@@ -228,6 +239,53 @@ def printenv(app_name):
             print(f.read())
 
 
+def print_app_catalog(include_latest=False):
+    app_names = sorted(definitions)
+    name_width = max(len("app"), max(len(name) for name in app_names))
+    version_width = max(
+        len("configured"),
+        max(len(str(configured_version(name))) for name in app_names),
+    )
+    latest_width = len("latest")
+    if include_latest:
+        latest_values = {
+            name: latest_version(name) or "unknown"
+            for name in app_names
+        }
+        latest_width = max(
+            len("latest"),
+            max(len(str(value)) for value in latest_values.values()),
+        )
+    else:
+        latest_values = {}
+
+    if include_latest:
+        header = (
+            f"{'app':<{name_width}}  {'configured':<{version_width}}  "
+            f"{'latest':<{latest_width}}  description"
+        )
+    else:
+        header = f"{'app':<{name_width}}  {'configured':<{version_width}}  description"
+
+    print(header)
+    print("-" * len(header))
+    for app_name in app_names:
+        if include_latest:
+            print(
+                f"{app_name:<{name_width}}  "
+                f"{configured_version(app_name):<{version_width}}  "
+                f"{latest_values[app_name]:<{latest_width}}  "
+                f"{app_description(app_name)}"
+            )
+        else:
+            print(
+                f"{app_name:<{name_width}}  "
+                f"{configured_version(app_name):<{version_width}}  "
+                f"{app_description(app_name)}"
+            )
+        print(f"{'':<{name_width}}  {'':<{version_width}}  {app_url(app_name)}")
+
+
 def backup(app_name):
     if app_name == "all":
         for app in app_db.all():
@@ -261,76 +319,112 @@ def backup(app_name):
             print(f"==> {app_name} backed up ✅")
 
 
-def list_apps(app_name):
+def list_apps(app_name, include_latest=False):
     if app_name == "installed":
         for app in app_db.all():
-            print(app["name"])
+            name = app["name"]
+            print(f"{name} - {app_description(name)}")
     elif app_name == "all":
-        for app_name in definitions:
-            print(app_name)
+        print_app_catalog(include_latest)
     else:
         show_ports(app_name)
         status_units(app_name)
+
 
 def main():
     examples_text = """
 Examples:
 ---------
 
-Install an app called thelounge
+Johnny installs self-hosted apps from Lisp definitions into Podman containers
+managed by user-level systemd.
+
+Install an app called thelounge:
 
     johnny install thelounge
 
-Check status of the app once installed
+For apps with version prompts, press Enter to use the configured default version
+or type an image/release tag to install that version.
+
+List apps Johnny can install:
+
+    johnny list all
+
+List apps and check the latest known upstream version:
+
+    johnny list all --latest
+
+List apps already installed on this machine:
+
+    johnny list installed
+
+Check status of an app once installed:
 
     johnny status thelounge
 
-Find open ports
+Find open ports:
 
     johnny ports thelounge
 
-Print environment used
+Print generated environment files:
 
     johnny printenv thelounge
 
-Stop the app
+Stop the app:
 
     johnny stop thelounge
 
-Restart it
+Restart the app:
 
     johnny restart thelounge
 
-Get logs of an app
+Follow logs for an app:
 
     johnny logs thelounge
 
-Backup an app
+Backup an app's Johnny-managed data directory:
 
     johnny backup thelounge
-
-List installed apps
-
-    johnny list all|installed|thelounge
 
 """
 
     parser = argparse.ArgumentParser(
-        description="JOHNAIC package manager",
+        description=(
+            "Johnny installs and manages self-hosted apps using Podman, "
+            "Quadlet files, and user-level systemd."
+        ),
         prog="johnny",
         epilog=examples_text,
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "action",
+        nargs="?",
         type=str,
-        help="One of install|uninstall|start|stop|restart|ports|printenv|logs|backup|status",
+        help="One of install|uninstall|start|stop|restart|ports|printenv|logs|backup|status|list",
     )
-    parser.add_argument("app_name", type=str, help="Name of the app")
+    parser.add_argument(
+        "app_name",
+        nargs="?",
+        type=str,
+        help="Name of the app, or all|installed for list",
+    )
+    parser.add_argument(
+        "--latest",
+        action="store_true",
+        help="When listing all apps, check latest known upstream versions.",
+    )
     args = parser.parse_args()
 
     action = args.action
     app_name = args.app_name
+
+    if action is None:
+        parser.print_help()
+        return
+
+    if app_name is None:
+        parser.error("the following arguments are required: app_name")
 
     if action == "install":
         install(app_name)
@@ -353,7 +447,7 @@ List installed apps
     elif action == "backup":
         backup(app_name)
     elif action == "list":
-        list_apps(app_name)
+        list_apps(app_name, args.latest)
     else:
         raise RuntimeError(f"Unknown action {action}")
 

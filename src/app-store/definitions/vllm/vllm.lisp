@@ -1,11 +1,13 @@
 (define-app
-    (version "0.6.2")
+    (version ,(choose-version "vllm" "0.6.2"))
     (ports 8080)
     (url "https://github.com/open-webui/open-webui/")
     (containers
         (container
             (name "vllm")
-            (build "localhost/johnaic/vllm:0.6.2")
+            (build ,(format "localhost/johnaic/vllm:{}" ,(choose-version "vllm" "0.6.2")))
+            (build-args
+                ("APP_VERSION" ,(choose-version "vllm" "0.6.2")))
             (environment
                 ("HF_TOKEN" "")
                 ("MY_MODEL" "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8")

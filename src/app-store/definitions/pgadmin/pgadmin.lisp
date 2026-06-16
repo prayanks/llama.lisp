@@ -1,5 +1,5 @@
 (define-app
-    (version "9.3.0")
+    (version ,(choose-version "pgadmin" "9.3.0"))
     (ports 5432 80)
     (let ((postgres_password ,(gen-password))
           (pgadmin_default_password ,(gen-password))) 
@@ -15,7 +15,7 @@
                     ("local_pgdata" "/var/lib/postgresql/data")))
             (container
                 (name "pgadmin")
-                (image "dpage/pgadmin4:9.3.0") 
+                (image ,(format "dpage/pgadmin4:{}" ,(choose-version "pgadmin" "9.3.0"))) 
                 (environment
                     ("PGADMIN_DEFAULT_EMAIL" "admin@johnaic.com")
                     ("PGADMIN_DEFAULT_PASSWORD" ,pgadmin_default_password)

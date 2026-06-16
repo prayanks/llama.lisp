@@ -1,11 +1,11 @@
 (define-app
-    (version "1.60.8")
+    (version ,(choose-version "litellm" "1.60.8"))
     (ports 4000 9090)
     (let ((db-password ,(gen-password)))
         (containers
             (container
                 (name "litellm")
-                (image "ghcr.io/berriai/litellm:main-v1.60.8")
+                (image ,(format "ghcr.io/berriai/litellm:main-v{}" ,(choose-version "litellm" "1.60.8")))
                 (command "--config=/app/config.yaml")
                 (volumes
                     ("config.yaml" "/app/config.yaml"))

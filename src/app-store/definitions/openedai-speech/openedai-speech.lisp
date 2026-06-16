@@ -1,11 +1,11 @@
 (define-app
-    (version "0.18.2")
+    (version ,(choose-version "openedai-speech" "0.18.2"))
     (ports 8080)
     (url "https://github.com/matatonic/openedai-speech")
     (containers
         (container
             (name "server")
-            (image "ghcr.io/matatonic/openedai-speech:0.18.2")
+            (image ,(format "ghcr.io/matatonic/openedai-speech:{}" ,(choose-version "openedai-speech" "0.18.2")))
             (environment
                 ("TTS_HOME" "voices")
                 ("HF_HOME" "voices"))

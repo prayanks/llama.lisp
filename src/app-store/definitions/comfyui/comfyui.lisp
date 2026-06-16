@@ -1,11 +1,13 @@
 (define-app
     ; name of the app is taken from file name
-    (version "0.2.2")
+    (version ,(choose-version "comfyui" "v0.2.2"))
     (ports 8189)
     (containers
         (container
             (name "comfyui")
-            (build "localhost/johnaic/comfyui:0.2.2")
+            (build ,(format "localhost/johnaic/comfyui:{}" ,(choose-version "comfyui" "v0.2.2")))
+            (build-args
+                ("APP_VERSION" ,(choose-version "comfyui" "v0.2.2")))
             (additional-flags "--device nvidia.com/gpu=all")
             (volumes
                 ("checkpoints" "/apps/comfyui/models/checkpoints")))

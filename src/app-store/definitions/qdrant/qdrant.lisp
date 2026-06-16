@@ -1,10 +1,10 @@
 (define-app
-    (version "1.12.0")
+    (version ,(choose-version "qdrant" "v1.12.0"))
     (ports 6333 6334)
         (containers
             (container
                 (name "qdrant")
-                (image "docker.io/qdrant/qdrant:v1.12.0")
+                (image ,(format "docker.io/qdrant/qdrant:{}" ,(choose-version "qdrant" "v1.12.0")))
                 (volumes 
                     ("qdrant_storage" "/qdrant/storage"))
                 (environment

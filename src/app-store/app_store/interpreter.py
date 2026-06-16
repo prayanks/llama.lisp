@@ -1,6 +1,13 @@
 import secrets
 import bcrypt
 
+try:
+    from catalog import latest_version
+except ImportError:
+    from app_store.catalog import latest_version
+
+chosen_versions = {}
+
 
 def _is_list(sexp):
     return isinstance(sexp, list)
@@ -11,6 +18,24 @@ def interactive_input(prompt, docs=""):
     print(docs)
     inp = input(f"==> {prompt}: ").strip()
     print(f"==> recieved {inp} for {prompt}")
+    return inp
+
+
+def choose_version(app_name, default_version):
+    if app_name in chosen_versions:
+        return chosen_versions[app_name]
+
+    latest = latest_version(app_name)
+    if latest:
+        prompt = f"==> Version for {app_name} [default: {default_version}, latest: {latest}]: "
+    else:
+        prompt = f"==> Version for {app_name} [default: {default_version}, latest: unknown]: "
+
+    inp = input(prompt).strip()
+    if inp == "":
+        inp = default_version
+
+    chosen_versions[app_name] = inp
     return inp
 
 
@@ -31,6 +56,7 @@ def gen_password(length=16):
 
 
 standard_lib = {
+    "choose-version": choose_version,
     "gen-password": gen_password,
     "hash-password": hash_password,
     "interactive-input": interactive_input,
