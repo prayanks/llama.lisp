@@ -102,6 +102,43 @@ def test_strip_prefix():
     )
 
 
+def test_prompt_input_default(monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda prompt: "")
+
+    assert (
+        config_lisp(
+            [
+                "unquote",
+                [
+                    "prompt-input",
+                    "Hugging Face model for vLLM",
+                    "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8",
+                    "Example: Qwen/Qwen2.5-7B-Instruct",
+                ],
+            ]
+        )
+        == "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8"
+    )
+
+
+def test_prompt_input_custom(monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda prompt: "Qwen/Qwen2.5-7B-Instruct")
+
+    assert (
+        config_lisp(
+            [
+                "unquote",
+                [
+                    "prompt-input",
+                    "Hugging Face model for vLLM",
+                    "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8",
+                ],
+            ]
+        )
+        == "Qwen/Qwen2.5-7B-Instruct"
+    )
+
+
 def test_app_definition():
     out = config_lisp(
         parse_sexp(

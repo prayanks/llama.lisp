@@ -21,6 +21,15 @@ def interactive_input(prompt, docs=""):
     return inp
 
 
+def prompt_input(prompt, default_value, docs=""):
+    if docs:
+        print(docs)
+    inp = input(f"==> {prompt} [{default_value}]: ").strip()
+    if inp == "":
+        return default_value
+    return inp
+
+
 def choose_version(app_name, default_version):
     if app_name in chosen_versions:
         return chosen_versions[app_name]
@@ -66,6 +75,7 @@ standard_lib = {
     "gen-password": gen_password,
     "hash-password": hash_password,
     "interactive-input": interactive_input,
+    "prompt-input": prompt_input,
     "format": str_format,
     "strip-prefix": strip_prefix,
     "gen-password-hex32": lambda: secrets.token_bytes(32).hex(),

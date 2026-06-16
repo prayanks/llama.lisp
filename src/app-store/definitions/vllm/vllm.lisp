@@ -10,7 +10,7 @@
                 ("APP_VERSION" ,(strip-prefix ,(choose-version "vllm" "0.6.2") "v")))
             (environment
                 ("HF_TOKEN" "")
-                ("MY_MODEL" "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8")
+                ("MY_MODEL" ,(prompt-input "Hugging Face model for vLLM" "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8" "Example: Qwen/Qwen2.5-7B-Instruct"))
                 ("MY_CONTEXT_SIZE" "32768")
                 ("MY_GPU_UTILIZATION" "1.0")
                 ("MY_KV_CACHE_DTYPE" "fp8"))
